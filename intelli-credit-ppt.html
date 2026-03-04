@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IntelliCredit — Hackathon 2025</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:#0A0C10; --surface:#10141C; --card:#151A25; --border:#1E2535;
+    --accent:#00D4AA; --warn:#F59E0B; --danger:#EF4444; --blue:#3B82F6;
+    --text:#E8EDF5; --muted:#6B7A99;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#1a1a2e;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:12px}
+
+  /* ── SLIDE SHELL ── */
+  .slide{
+    width:960px;min-height:540px;background:var(--bg);position:relative;
+    border-radius:4px;overflow:hidden;
+    box-shadow:0 20px 60px #00000080;
+    display:none;flex-direction:column;
+  }
+  .slide.active{display:flex}
+  .top-bar{position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+  .bot-bar{position:absolute;bottom:0;left:0;right:0;height:28px;background:var(--surface);display:flex;align-items:center;padding:0 20px}
+  .bot-bar span{font-size:9px;color:var(--muted);letter-spacing:.05em}
+  .slide-body{padding:22px 32px 36px;flex:1}
+
+  /* ── TYPOGRAPHY ── */
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .eyebrow.blue{color:var(--blue)}
+  .eyebrow.warn{color:var(--warn)}
+  .h1{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:900;color:var(--text);line-height:1.1;margin-bottom:18px}
+  .h1 span{color:var(--accent)}
+  .muted{color:var(--muted);font-size:12px}
+
+  /* ── BADGES ── */
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .badge.ok{background:#00D4AA18;border:1px solid #00D4AA55;color:var(--accent)}
+  .badge.warn{background:#F59E0B18;border:1px solid #F59E0B55;color:var(--warn)}
+  .badge.danger{background:#EF444418;border:1px solid #EF444455;color:var(--danger)}
+  .badge.blue{background:#3B82F618;border:1px solid #3B82F655;color:var(--blue)}
+  .badge.gold{background:linear-gradient(135deg,#F59E0B22,#F59E0B11);border:1px solid #F59E0B88;color:#FBBF24;font-size:11px;padding:5px 14px}
+
+  /* ── CARDS ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .card.accent-l{border-left:3px solid var(--accent)}
+  .card.blue-l{border-left:3px solid var(--blue)}
+  .card.warn-l{border-left:3px solid var(--warn)}
+  .card.danger-l{border-left:3px solid var(--danger)}
+  .card.muted-l{border-left:3px solid var(--muted)}
+
+  /* ── GRIDS ── */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+  .cols{display:flex;gap:16px}
+  .col-left{flex:0 0 420px}
+  .col-right{flex:1}
+
+  /* ── BARS ── */
+  .bar-wrap{background:var(--border);border-radius:4px;height:7px;width:100%;margin-top:5px}
+  .bar-fill{height:7px;border-radius:4px;transition:width .8s ease}
+
+  /* ── TABLE ── */
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{background:var(--surface);color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;text-align:left;font-size:9.5px;border-bottom:1px solid var(--border)}
+  td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+  tr.flagged{background:#EF444408}
+
+  /* ── PILL TAGS ── */
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid;margin-right:6px}
+
+  /* ── STAT CALLOUT ── */
+  .stat-num{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:900;line-height:1}
+
+  /* ── NAVIGATION ── */
+  #nav{display:flex;align-items:center;gap:12px;width:960px;justify-content:space-between}
+  .nav-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+  .nav-btn:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  .nav-btn:disabled{opacity:.3;cursor:default}
+  .nav-btn:disabled:hover{background:var(--card);color:var(--text);border-color:var(--border)}
+  #slide-indicator{color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace}
+  .dots{display:flex;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s}
+  .dot.active{background:var(--accent);transform:scale(1.2)}
+
+  /* ── FLOW ARROWS ── */
+  .flow{display:flex;align-items:center;gap:0}
+  .flow-arrow{color:var(--accent);font-size:22px;padding:0 8px;flex-shrink:0}
+
+  /* ── SHAP ITEM ── */
+  .shap-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+  .shap-row:last-child{border:none}
+
+  /* ── ARCH LAYER ── */
+  .arch-layer{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .arch-header{padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:center}
+  .arch-items{padding:10px}
+  .arch-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:9.5px;color:var(--text);margin-bottom:6px;text-align:center}
+  .arch-item:last-child{margin:0}
+
+  /* ── SCREEN MOCKUP ── */
+  .mockup{background:var(--surface);border-radius:8px;overflow:hidden;border:1px solid}
+  .mockup-chrome{padding:7px 12px;background:var(--card);display:flex;align-items:center;gap:5px}
+  .dot-r{width:9px;height:9px;border-radius:50%;background:#EF4444}
+  .dot-y{width:9px;height:9px;border-radius:50%;background:#F59E0B}
+  .dot-g{width:9px;height:9px;border-radius:50%;background:#00D4AA}
+  .mockup-body{padding:12px}
+  .mock-line{height:8px;border-radius:4px;margin-bottom:7px;background:var(--border)}
+
+  /* ── TIMELINE ── */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl-item{display:flex;gap:12px;padding-bottom:12px;position:relative}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-left{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0}
+  .tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+  .tl-line{width:2px;flex:1;margin-top:2px}
+  .tl-content{padding-top:4px;flex:1}
+
+  /* ── TITLE SLIDE SPECIFIC ── */
+  .title-glow{position:absolute;right:-80px;top:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,#00D4AA18 0%,transparent 70%);pointer-events:none}
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .slide.active .slide-body > *{animation:fadeUp .35s ease both}
+  .slide.active .slide-body > *:nth-child(2){animation-delay:.05s}
+  .slide.active .slide-body > *:nth-child(3){animation-delay:.1s}
+  .slide.active .slide-body > *:nth-child(4){animation-delay:.15s}
+  .slide.active .slide-body > *:nth-child(5){animation-delay:.2s}
+
+  /* ── KEYWORD HIGHLIGHTS ── */
+  em.hi{color:var(--accent);font-style:normal;font-weight:700}
+  em.red{color:var(--danger);font-style:normal;font-weight:700}
+  em.warn{color:var(--warn);font-style:normal;font-weight:700}
+  em.blue{color:var(--blue);font-style:normal;font-weight:700}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SLIDE 1 — TITLE ═══════════════ -->
+<div class="slide active" id="s1">
+  <div class="top-bar"></div>
+  <div class="title-glow"></div>
+  <div class="slide-body" style="display:flex;gap:32px;align-items:center;padding-top:32px">
+    <div style="flex:1">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#00D4AA14;border:1px solid #00D4AA55;border-radius:6px;padding:5px 14px;margin-bottom:18px">
+        <span style="font-size:14px">🏆</span>
+        <span style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase">National Hackathon 2025 — Top 10 / 500 Teams</span>
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:64px;font-weight:900;line-height:1;margin-bottom:12px">
+        <span style="color:var(--text)">Intelli</span><span style="color:var(--accent)">Credit</span>
+      </div>
+      <div style="font-size:18px;color:var(--muted);margin-bottom:8px">AI-Powered Corporate Credit Appraisal Engine</div>
+      <div style="font-size:13px;color:var(--text);font-style:italic;margin-bottom:28px">From weeks to minutes. From guesswork to explainable AI.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span class="pill" style="color:var(--blue);border-color:#3B82F655;background:#3B82F612">1. Data Ingestor</span>
+        <span class="pill" style="color:var(--accent);border-color:#00D4AA55;background:#00D4AA12">2. Research Agent</span>
+        <span class="pill" style="color:var(--warn);border-color:#F59E0B55;background:#F59E0B12">3. CAM Engine</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:210px">
+      <div class="card" style="text-align:center;border-color:#EF444430">
+        <div class="stat-num" style="color:var(--danger)">500+</div>
+        <div class="muted" style="margin-top:4px">Teams Competed</div>
+      </div>
+      <div class="card" style="text-align:center;border-color:#00D4AA55;background:#00D4AA0A">
+        <div class="stat-num" style="color:var(--accent)">TOP 10</div>
+        <div class="muted" style="margin-top:4px;color:var(--accent)">National Ranking 🎉</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="stat-num" style="color:var(--blue)">3</div>
+        <div class="muted" style="margin-top:4px">AI Pillars Built</div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 2 — PROBLEM ═══════════════ -->
+<div class="slide" id="s2">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">The Problem</div>
+    <div class="h1">India's Corporate Credit — The <span>Data Paradox</span></div>
+    <div class="cols">
+      <div class="col-left">
+        <div class="card danger-l" style="background:#EF444410;border-color:#EF444440;text-align:center;padding:20px;margin-bottom:14px">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:68px;font-weight:900;color:var(--danger);line-height:1">3–6</div>
+          <div style="color:var(--text);font-size:14px;font-weight:600;margin-top:4px">WEEKS to process one loan application</div>
+          <div class="muted" style="margin-top:6px;font-size:11px">Mid-sized Indian corporate credit today</div>
+        </div>
+        <div class="card" style="background:#3B82F610;border-color:#3B82F640;padding:14px">
+          <div style="font-size:11px;color:var(--muted);font-style:italic;line-height:1.6">"More data than ever — yet approvals still take weeks. The intelligence gap is costing banks and borrowers alike."</div>
+          <div style="margin-top:10px;font-size:12px;color:var(--accent);font-weight:700">→ IntelliCredit bridges this gap with AI</div>
+        </div>
+      </div>
+      <div class="col-right">
+        <div class="grid2" style="height:100%">
+          <div class="card blue-l">
+            <div style="font-size:22px;margin-bottom:8px">📄</div>
+            <div style="color:var(--text);font-weight:700;font-size:13px;margin-bottom:5px">Fragmented Data</div>
+            <div class="muted" style="font-size:11px">GST filings, ITRs, bank statements, PDFs — all siloed and unlinked</div>
+          </div>
+          <div class="card danger-l">
+            <div style="font-size:22px;margin-bottom:8px">🔍</div>
+            <div style="color:var(--text);font-weight:700;font-size:13px;margin-bottom:5px">Missed Early Warnings</div>
+            <div class="muted" style="font-size:11px">Signals buried in 200-page annual reports go unnoticed until default</div>
+          </div>
+          <div class="card warn-l">
+            <div style="font-size:22px;margin-bottom:8px">🧠</div>
+            <div style="color:var(--text);font-weight:700;font-size:13px;margin-bottom:5px">Human Bias</div>
+            <div class="muted" style="font-size:11px">Subjective analyst judgement with no audit trail or explainability</div>
+          </div>
+          <div class="card accent-l">
+            <div style="font-size:22px;margin-bottom:8px">🌐</div>
+            <div style="color:var(--text);font-weight:700;font-size:13px;margin-bottom:5px">No External Intelligence</div>
+            <div class="muted" style="font-size:11px">Litigation, MCA flags & sector news manually googled — or skipped</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 3 — SOLUTION OVERVIEW ═══════════════ -->
+<div class="slide" id="s3">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Our Solution</div>
+    <div class="h1">IntelliCredit — <span>End-to-End</span> AI Credit Decisioning</div>
+    <div class="flow" style="margin-bottom:14px">
+      <!-- Pillar 1 -->
+      <div class="card blue-l" style="flex:1;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:28px;height:28px;border-radius:50%;background:#3B82F618;border:1px solid #3B82F655;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--blue)">01</div>
+          <span style="font-size:20px">📥</span>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Data Ingestor</div>
+        <div style="font-size:10px;color:var(--blue);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Multi-Format Parsing</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">› PDF / XLSX / scanned OCR<br>› GST ↔ Bank reconciliation<br>› Circular trading detection</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <!-- Pillar 2 -->
+      <div class="card accent-l" style="flex:1;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:28px;height:28px;border-radius:50%;background:#00D4AA18;border:1px solid #00D4AA55;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--accent)">02</div>
+          <span style="font-size:20px">🔍</span>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Research Agent</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Digital Credit Manager</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">› Web crawl: promoters, sector<br>› eCourts + MCA + SFIO<br>› Qualitative notes portal</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <!-- Pillar 3 -->
+      <div class="card warn-l" style="flex:1;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:28px;height:28px;border-radius:50%;background:#F59E0B18;border:1px solid #F59E0B55;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--warn)">03</div>
+          <span style="font-size:20px">📋</span>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">CAM Engine</div>
+        <div style="font-size:10px;color:var(--warn);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Recommendation & Report</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">› Five Cs scoring model<br>› SHAP explainability<br>› PDF / DOCX CAM output</div>
+      </div>
+    </div>
+    <div style="background:#00D4AA12;border:1px solid #00D4AA40;border-radius:8px;padding:11px 20px;text-align:center;font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.04em">
+      OUTPUT:  Comprehensive Credit Appraisal Memo (CAM)  ·  Loan Amount  ·  Risk-Adjusted Interest Rate  ·  Explainable Decision Logic
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 4 — PILLAR 1 ═══════════════ -->
+<div class="slide" id="s4">
+  <div class="top-bar" style="background:var(--blue)"></div>
+  <div class="slide-body">
+    <div class="eyebrow blue">Pillar 1</div>
+    <div class="h1">Data Ingestor — <span style="color:var(--blue)">Multi-Format Intelligence</span></div>
+    <div class="cols">
+      <div style="flex:0 0 300px;display:flex;flex-direction:column;gap:8px">
+        <div class="card blue-l" style="padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">📄</span>
+          <div><div style="color:var(--text);font-weight:700;font-size:11px">Annual Reports (PDF)</div><div class="muted" style="font-size:10px">Key commitments, risk factors, MD&A</div></div>
+        </div>
+        <div class="card blue-l" style="padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">🧾</span>
+          <div><div style="color:var(--text);font-weight:700;font-size:11px">GST Returns (3B vs 2A)</div><div class="muted" style="font-size:10px">Circular trading & inflation detection</div></div>
+        </div>
+        <div class="card blue-l" style="padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">🏦</span>
+          <div><div style="color:var(--text);font-weight:700;font-size:11px">Bank Statements</div><div class="muted" style="font-size:10px">Cash flow patterns & anomaly flags</div></div>
+        </div>
+        <div class="card blue-l" style="padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⚖️</span>
+          <div><div style="color:var(--text);font-weight:700;font-size:11px">Legal / DRT Notices</div><div class="muted" style="font-size:10px">Recovery suits, wilful default flags</div></div>
+        </div>
+        <div class="card blue-l" style="padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">🏛️</span>
+          <div><div style="color:var(--text);font-weight:700;font-size:11px">MCA Filings</div><div class="muted" style="font-size:10px">Director history, charge records</div></div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div class="card" style="padding:14px">
+          <div style="color:var(--accent);font-weight:700;font-size:12px;margin-bottom:4px">GST Reconciliation Engine</div>
+          <div class="muted" style="font-size:10px;margin-bottom:10px">GSTR-3B vs GSTR-2A vs Bank Credits</div>
+          <table>
+            <thead><tr><th>Month</th><th>GSTR-3B</th><th>GSTR-2A</th><th>Bank</th><th>Variance</th><th>Flag</th></tr></thead>
+            <tbody>
+              <tr><td>Jan 24</td><td>₹48.2L</td><td>₹46.5L</td><td>₹47.0L</td><td style="color:var(--accent)">Normal</td><td><span class="badge ok">Clear</span></td></tr>
+              <tr><td>Feb 24</td><td>₹51.0L</td><td>₹49.0L</td><td>₹48.0L</td><td style="color:var(--accent)">Normal</td><td><span class="badge ok">Clear</span></td></tr>
+              <tr class="flagged"><td>Mar 24</td><td style="color:var(--danger);font-weight:700">₹89.0L</td><td>₹42.0L</td><td>₹45.0L</td><td style="color:var(--danger);font-weight:700">↑ 112%</td><td><span class="badge danger">⚠ Inflation</span></td></tr>
+              <tr><td>Apr 24</td><td>₹53.0L</td><td>₹51.0L</td><td>₹52.0L</td><td style="color:var(--accent)">Normal</td><td><span class="badge ok">Clear</span></td></tr>
+              <tr class="flagged"><td>Jun 24</td><td style="color:var(--danger);font-weight:700">₹92.0L</td><td>₹41.0L</td><td>₹43.0L</td><td style="color:var(--danger);font-weight:700">↑ 124%</td><td><span class="badge danger">⚠ Inflation</span></td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:10px;background:#EF444410;border:1px solid #EF444433;border-radius:7px;padding:10px 12px;font-size:10.5px">
+            <span style="color:var(--danger);font-weight:700">🚨 AI Finding:</span> <span style="color:var(--text)">GSTR-3B in Mar & Jun show revenue 112–124% above GSTR-2A purchase data — strong indicator of <strong>circular trading / revenue inflation</strong>.</span>
+          </div>
+        </div>
+        <div class="card" style="margin-top:10px;background:var(--surface);padding:10px 14px">
+          <span style="font-size:10.5px;color:var(--muted);font-style:italic">📝 Credit Officer site-visit notes are auto-parsed into the risk scoring model via NLP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 5 — PILLAR 2 ═══════════════ -->
+<div class="slide" id="s5">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Pillar 2</div>
+    <div class="h1">Research Agent — <span>The Digital Credit Manager</span></div>
+    <div class="cols">
+      <div style="flex:0 0 290px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Sources Crawled</div>
+        <div class="grid2" style="gap:8px">
+          <div class="card blue-l" style="padding:10px 12px;font-size:10px;color:var(--text)">📰 Economic Times / Moneycontrol</div>
+          <div class="card danger-l" style="padding:10px 12px;font-size:10px;color:var(--text)">⚖️ eCourts Portal</div>
+          <div class="card warn-l" style="padding:10px 12px;font-size:10px;color:var(--text)">🏛️ MCA21 Filings</div>
+          <div class="card danger-l" style="padding:10px 12px;font-size:10px;color:var(--text)">🔎 SFIO Database</div>
+          <div class="card accent-l" style="padding:10px 12px;font-size:10px;color:var(--text)">📊 ICRA / CRISIL Reports</div>
+          <div class="card blue-l" style="padding:10px 12px;font-size:10px;color:var(--text)">📋 CIBIL Commercial</div>
+        </div>
+        <div class="card accent-l" style="margin-top:10px;padding:12px 14px">
+          <div style="color:var(--accent);font-weight:700;font-size:11px;margin-bottom:5px">📝 Qualitative Portal</div>
+          <div class="muted" style="font-size:10px;line-height:1.6">Credit officers enter site-visit observations → AI recalibrates risk score via NLP sentiment & key triggers</div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Sample Findings — Sharma Specialty Chemicals Ltd.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="card" style="border-color:#EF444433;display:flex;gap:10px;align-items:flex-start;padding:12px 14px">
+            <span style="font-size:18px">🚨</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="badge danger">High Risk</span><span style="font-size:10px;color:var(--muted)">eCourts Portal · 3 Mar 2025</span></div>
+              <div style="color:var(--text);font-size:12px;font-weight:600">DRT Mumbai: Recovery suit ₹4.2 Cr filed by Punjab National Bank (pending)</div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);white-space:nowrap">97% relevance</span>
+          </div>
+          <div class="card" style="border-color:#F59E0B33;display:flex;gap:10px;align-items:flex-start;padding:12px 14px">
+            <span style="font-size:18px">⚠️</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="badge warn">Caution</span><span style="font-size:10px;color:var(--muted)">Economic Times · 12 Jan 2025</span></div>
+              <div style="color:var(--text);font-size:12px;font-weight:600">Promoter Rajesh Sharma named in SFIO probe for related-party transactions</div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);white-space:nowrap">94% relevance</span>
+          </div>
+          <div class="card" style="border-color:#00D4AA33;display:flex;gap:10px;align-items:flex-start;padding:12px 14px">
+            <span style="font-size:18px">✅</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="badge ok">Positive</span><span style="font-size:10px;color:var(--muted)">Business Standard · 8 Feb 2025</span></div>
+              <div style="color:var(--text);font-size:12px;font-weight:600">Specialty chemicals demand to grow 18% in FY26 — ICRA sector outlook</div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);white-space:nowrap">81% relevance</span>
+          </div>
+          <div class="card" style="border-color:#F59E0B33;display:flex;gap:10px;align-items:flex-start;padding:12px 14px">
+            <span style="font-size:18px">⚠️</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="badge warn">Caution</span><span style="font-size:10px;color:var(--muted)">Moneycontrol · 20 Nov 2024</span></div>
+              <div style="color:var(--text);font-size:12px;font-weight:600">Company missed Q2 GST compliance deadline — ₹12L penalty levied by GSTN</div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);white-space:nowrap">88% relevance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 6 — PILLAR 3 ═══════════════ -->
+<div class="slide" id="s6">
+  <div class="top-bar" style="background:var(--warn)"></div>
+  <div class="slide-body">
+    <div class="eyebrow warn">Pillar 3</div>
+    <div class="h1">CAM Generator & <span style="color:var(--warn)">Decision Engine</span></div>
+    <div class="cols">
+      <div style="flex:0 0 330px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Five Cs Scoring</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div class="card" style="padding:11px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--text);font-size:12px;font-weight:700">👤 Character</span><span style="color:var(--warn);font-weight:800;font-family:'JetBrains Mono',monospace">52</span></div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:52%;background:var(--warn)"></div></div>
+          </div>
+          <div class="card" style="padding:11px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--text);font-size:12px;font-weight:700">⚙️ Capacity</span><span style="color:var(--accent);font-weight:800;font-family:'JetBrains Mono',monospace">71</span></div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:71%;background:var(--accent)"></div></div>
+          </div>
+          <div class="card" style="padding:11px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--text);font-size:12px;font-weight:700">💰 Capital</span><span style="color:var(--accent);font-weight:800;font-family:'JetBrains Mono',monospace">68</span></div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:68%;background:var(--accent)"></div></div>
+          </div>
+          <div class="card" style="padding:11px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--text);font-size:12px;font-weight:700">🏭 Collateral</span><span style="color:var(--blue);font-weight:800;font-family:'JetBrains Mono',monospace">74</span></div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:74%;background:var(--blue)"></div></div>
+          </div>
+          <div class="card" style="padding:11px 14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--text);font-size:12px;font-weight:700">🌐 Conditions</span><span style="color:var(--blue);font-weight:800;font-family:'JetBrains Mono',monospace">66</span></div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:66%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:8px;background:var(--surface);padding:10px 14px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted);font-size:11px;font-weight:700">Composite Score:</span><span style="color:var(--warn);font-weight:900;font-size:15px;font-family:'JetBrains Mono',monospace">63/100</span></div>
+          <div style="color:var(--warn);font-size:10px;margin-top:2px">Risk Band: MEDIUM-HIGH</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+        <div class="card" style="border-color:#F59E0B55;background:#F59E0B08;padding:14px">
+          <div style="color:var(--warn);font-weight:800;font-size:11px;letter-spacing:.08em;margin-bottom:8px">🏦 DECISION OUTPUT</div>
+          <div style="background:#F59E0B18;border:1px solid #F59E0B55;border-radius:7px;padding:9px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:900;color:var(--warn);margin-bottom:10px">CONDITIONAL APPROVAL</div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:11px">
+            <span style="color:var(--muted);font-weight:700">Loan Limit:</span><span style="color:var(--text);font-weight:600">₹8.5 Crore &nbsp;<span style="color:var(--muted)">(vs ₹15 Cr requested)</span></span>
+            <span style="color:var(--muted);font-weight:700">Interest Rate:</span><span style="color:var(--text);font-weight:600">MCLR + 2.75% (~11.5% p.a.)</span>
+            <span style="color:var(--muted);font-weight:700">Tenor:</span><span style="color:var(--text);font-weight:600">36 months</span>
+            <span style="color:var(--muted);font-weight:700">Security:</span><span style="color:var(--text);font-weight:600">Factory property + promoter guarantee</span>
+          </div>
+        </div>
+        <div class="card blue-l" style="padding:14px">
+          <div style="color:var(--blue);font-weight:800;font-size:11px;margin-bottom:8px">🧠 SHAP Explainability</div>
+          <div class="shap-row"><span style="color:var(--text);font-size:11px">Promoter litigation (SFIO)</span><span style="color:var(--danger);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">−18 pts</span></div>
+          <div class="shap-row"><span style="color:var(--text);font-size:11px">GST inflation anomaly</span><span style="color:var(--danger);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">−11 pts</span></div>
+          <div class="shap-row"><span style="color:var(--text);font-size:11px">Low factory utilisation (40%)</span><span style="color:var(--danger);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">−8 pts</span></div>
+          <div class="shap-row"><span style="color:var(--text);font-size:11px">Adequate collateral coverage</span><span style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">+14 pts</span></div>
+          <div class="shap-row"><span style="color:var(--text);font-size:11px">Positive sector outlook (ICRA)</span><span style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px">+9 pts</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 7 — ARCHITECTURE ═══════════════ -->
+<div class="slide" id="s7">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Architecture</div>
+    <div class="h1">Technical Stack & <span>System Architecture</span></div>
+    <div class="grid4" style="margin-bottom:12px">
+      <div class="arch-layer"><div class="arch-header" style="background:#3B82F618;color:var(--blue)">Input Layer</div><div class="arch-items"><div class="arch-item">GST / ITR XML</div><div class="arch-item">PDF Docs (OCR)</div><div class="arch-item">Scanned Images</div><div class="arch-item">MCA / eCourts APIs</div></div></div>
+      <div class="arch-layer"><div class="arch-header" style="background:#00D4AA18;color:var(--accent)">Databricks Pipeline</div><div class="arch-items"><div class="arch-item">Delta Lake Ingest</div><div class="arch-item">PySpark Transforms</div><div class="arch-item">LLM Extraction</div><div class="arch-item">Feature Engineering</div></div></div>
+      <div class="arch-layer"><div class="arch-header" style="background:#F59E0B18;color:var(--warn)">AI Agents</div><div class="arch-items"><div class="arch-item">LangChain Agents</div><div class="arch-item">Tavily Web Search</div><div class="arch-item">FAISS Vector Store</div><div class="arch-item">BERT Sentiment NLP</div></div></div>
+      <div class="arch-layer"><div class="arch-header" style="background:#6B7A9918;color:var(--muted)">Output Layer</div><div class="arch-items"><div class="arch-item">XGBoost + SHAP</div><div class="arch-item">CAM PDF / DOCX</div><div class="arch-item">React Dashboard</div><div class="arch-item">REST API</div></div></div>
+    </div>
+    <div style="background:#00D4AA12;border:1px solid #00D4AA40;border-radius:8px;padding:11px 18px;text-align:center">
+      <span style="font-size:14px">🇮🇳</span>
+      <span style="font-size:10.5px;color:var(--accent);font-weight:700;margin-left:8px">India-Specific:  GSTR-2A vs 3B  ·  CIBIL Commercial  ·  DRT / eCourts  ·  MCA21  ·  RBI Circular Parsing</span>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="card accent-l" style="padding:12px 14px">
+        <div style="color:var(--accent);font-weight:700;font-size:11px;margin-bottom:6px">⚡ Performance Targets</div>
+        <div class="muted" style="font-size:10.5px;line-height:1.8">PDF extraction: &lt;30 sec per doc<br>Web research: &lt;90 sec full sweep<br>CAM generation: &lt;3 min end-to-end<br>Scoring model: &lt;1 sec inference</div>
+      </div>
+      <div class="card blue-l" style="padding:12px 14px">
+        <div style="color:var(--blue);font-weight:700;font-size:11px;margin-bottom:6px">🔒 Compliance & Security</div>
+        <div class="muted" style="font-size:10.5px;line-height:1.8">RBI data localisation compliant<br>AES-256 encryption at rest<br>RBAC with full audit trail<br>Model drift monitoring</div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 8 — DEMO ═══════════════ -->
+<div class="slide" id="s8">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Live Demo</div>
+    <div class="h1">Prototype — Working <span>End-to-End Demo</span></div>
+    <div class="grid3" style="margin-bottom:12px">
+      <div>
+        <div class="mockup" style="border-color:var(--blue);margin-bottom:8px">
+          <div class="mockup-chrome"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span style="font-size:10px;color:var(--muted);margin-left:6px">IntelliCredit / ingest</span></div>
+          <div class="mockup-body">
+            <div class="mock-line" style="width:80%;background:#3B82F644"></div>
+            <div class="mock-line" style="width:60%"></div><div class="mock-line" style="width:90%"></div>
+            <div style="background:#EF444415;border:1px solid #EF444430;border-radius:4px;padding:6px;margin-top:4px">
+              <div style="height:7px;border-radius:3px;background:#EF444455;margin-bottom:4px;width:90%"></div>
+              <div style="height:7px;border-radius:3px;background:var(--border);width:70%"></div>
+            </div>
+            <div class="mock-line" style="width:50%;margin-top:6px"></div>
+          </div>
+        </div>
+        <div class="card blue-l" style="padding:10px 12px">
+          <div style="color:var(--blue);font-size:11px;font-weight:700;margin-bottom:4px">Step 1: Upload & Extract</div>
+          <div class="muted" style="font-size:9.5px;line-height:1.5">Drop PDFs, GST & bank files → AI extraction with GST reconciliation showing ⚠ circular trading flags</div>
+        </div>
+      </div>
+      <div>
+        <div class="mockup" style="border-color:var(--accent);margin-bottom:8px">
+          <div class="mockup-chrome"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span style="font-size:10px;color:var(--muted);margin-left:6px">IntelliCredit / research</span></div>
+          <div class="mockup-body">
+            <div class="mock-line" style="width:85%;background:#00D4AA33"></div>
+            <div style="margin:6px 0;display:flex;flex-direction:column;gap:4px">
+              <div style="background:#EF444412;border-left:3px solid #EF4444;padding:4px 6px;border-radius:0 4px 4px 0;height:14px"></div>
+              <div style="background:#F59E0B12;border-left:3px solid #F59E0B;padding:4px 6px;border-radius:0 4px 4px 0;height:14px"></div>
+              <div style="background:#00D4AA12;border-left:3px solid #00D4AA;padding:4px 6px;border-radius:0 4px 4px 0;height:14px"></div>
+            </div>
+            <div class="mock-line" style="width:60%;margin-top:4px"></div>
+          </div>
+        </div>
+        <div class="card accent-l" style="padding:10px 12px">
+          <div style="color:var(--accent);font-size:11px;font-weight:700;margin-bottom:4px">Step 2: Research Agent</div>
+          <div class="muted" style="font-size:9.5px;line-height:1.5">Agent crawls eCourts, MCA, live news → Findings ranked by risk relevance with source attribution</div>
+        </div>
+      </div>
+      <div>
+        <div class="mockup" style="border-color:var(--warn);margin-bottom:8px">
+          <div class="mockup-chrome"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span style="font-size:10px;color:var(--muted);margin-left:6px">IntelliCredit / decision</span></div>
+          <div class="mockup-body">
+            <div class="mock-line" style="width:70%;background:#F59E0B44"></div>
+            <div style="margin:5px 0">
+              <div style="height:6px;border-radius:3px;background:var(--warn);width:52%;margin-bottom:4px"></div>
+              <div style="height:6px;border-radius:3px;background:var(--accent);width:71%;margin-bottom:4px"></div>
+              <div style="height:6px;border-radius:3px;background:var(--blue);width:74%;margin-bottom:4px"></div>
+            </div>
+            <div style="background:#F59E0B18;border:1px solid #F59E0B44;border-radius:4px;padding:5px;text-align:center">
+              <div style="height:8px;border-radius:3px;background:#F59E0B55;width:80%;margin:0 auto"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card warn-l" style="padding:10px 12px">
+          <div style="color:var(--warn);font-size:11px;font-weight:700;margin-bottom:4px">Step 3: CAM & Decision</div>
+          <div class="muted" style="font-size:9.5px;line-height:1.5">Five Cs scoring + SHAP explainability → Credit Appraisal Memo downloadable as PDF / DOCX</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#00D4AA12;border:1px solid #00D4AA40;border-radius:8px;padding:11px 18px;text-align:center">
+      <span style="font-size:10.5px;color:var(--accent);font-weight:700">✨ Full interactive prototype built with React + Claude API · Available for live demo during judging</span>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 9 — DIFFERENTIATORS ═══════════════ -->
+<div class="slide" id="s9">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Differentiators</div>
+    <div class="h1">Why <span>IntelliCredit</span> Wins</div>
+    <div class="grid2" style="gap:10px">
+      <div class="card accent-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">🇮🇳</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">India-First Design</div><div class="muted" style="font-size:10.5px;line-height:1.6">Built specifically for GSTR-2A vs 3B, CIBIL Commercial, DRT recovery, MCA21, and RBI regulatory parsing — not a generic global tool.</div></div>
+      </div>
+      <div class="card blue-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">🧠</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">Explainable AI, Not a Black Box</div><div class="muted" style="font-size:10.5px;line-height:1.6">Every decision comes with SHAP factor attribution. Judges, regulators and borrowers can see exactly why a limit was set or rejected.</div></div>
+      </div>
+      <div class="card warn-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">⚡</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">End-to-End in One Platform</div><div class="muted" style="font-size:10.5px;line-height:1.6">From raw scanned PDFs to a signed-off Credit Appraisal Memo — no human hand-offs, no spreadsheet exports, no tool-switching.</div></div>
+      </div>
+      <div class="card accent-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">🔗</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">Multi-Source Synthesis</div><div class="muted" style="font-size:10.5px;line-height:1.6">Cross-links GST with bank flows, corroborates with eCourts and MCA filings, validates against live news — all automatically.</div></div>
+      </div>
+      <div class="card blue-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">👤</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">Human-in-the-Loop</div><div class="muted" style="font-size:10.5px;line-height:1.6">Credit officers inject qualitative site-visit notes at any point. The AI recalibrates risk score transparently around human insight.</div></div>
+      </div>
+      <div class="card warn-l" style="display:flex;gap:12px;padding:14px">
+        <span style="font-size:26px;flex-shrink:0">📋</span>
+        <div><div style="color:var(--text);font-weight:800;font-size:13px;margin-bottom:4px">CAM-Ready Output</div><div class="muted" style="font-size:10.5px;line-height:1.6">Generates a bank-grade Credit Appraisal Memo meeting RBI guidelines — ready to submit to credit committee on Day 1.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 10 — TEAM & ROADMAP ═══════════════ -->
+<div class="slide" id="s10">
+  <div class="top-bar"></div>
+  <div class="slide-body">
+    <div class="eyebrow">Team & Roadmap</div>
+    <div class="h1">The Team Behind <span>IntelliCredit</span></div>
+    <div class="cols">
+      <div style="flex:0 0 380px">
+        <div class="grid2" style="gap:10px">
+          <div class="card accent-l" style="padding:13px">
+            <div style="width:38px;height:38px;border-radius:50%;background:#00D4AA22;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--accent);margin-bottom:8px">A</div>
+            <div style="color:var(--text);font-weight:700;font-size:12px">Team Member 1</div>
+            <div style="color:var(--accent);font-size:10px;margin:2px 0">AI / ML Engineer</div>
+            <div class="muted" style="font-size:9.5px">LLM pipelines · LangChain · Vector DB</div>
+          </div>
+          <div class="card blue-l" style="padding:13px">
+            <div style="width:38px;height:38px;border-radius:50%;background:#3B82F622;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--blue);margin-bottom:8px">B</div>
+            <div style="color:var(--text);font-weight:700;font-size:12px">Team Member 2</div>
+            <div style="color:var(--blue);font-size:10px;margin:2px 0">Data Engineer</div>
+            <div class="muted" style="font-size:9.5px">Databricks · PySpark · Delta Lake</div>
+          </div>
+          <div class="card warn-l" style="padding:13px">
+            <div style="width:38px;height:38px;border-radius:50%;background:#F59E0B22;border:2px solid var(--warn);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--warn);margin-bottom:8px">C</div>
+            <div style="color:var(--text);font-weight:700;font-size:12px">Team Member 3</div>
+            <div style="color:var(--warn);font-size:10px;margin:2px 0">Credit Domain Expert</div>
+            <div class="muted" style="font-size:9.5px">Banking · Credit analysis · CAM</div>
+          </div>
+          <div class="card blue-l" style="padding:13px">
+            <div style="width:38px;height:38px;border-radius:50%;background:#3B82F622;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--blue);margin-bottom:8px">D</div>
+            <div style="color:var(--text);font-weight:700;font-size:12px">Team Member 4</div>
+            <div style="color:var(--blue);font-size:10px;margin:2px 0">Full Stack Developer</div>
+            <div class="muted" style="font-size:9.5px">React · FastAPI · Cloud deploy</div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Roadmap</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:#00D4AA22;border:2px solid var(--accent);color:var(--accent)">✓</div><div class="tl-line" style="background:var(--border)"></div></div>
+            <div class="tl-content card accent-l" style="padding:10px 13px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span style="color:var(--text);font-weight:700;font-size:12px">Phase 1 — Hackathon MVP</span><span class="badge ok">Done ✓</span></div><div class="muted" style="font-size:10px;margin-top:3px">3-pillar prototype · React UI · Mock data end-to-end demo</div></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:#3B82F622;border:2px solid var(--blue);color:var(--blue)">2</div><div class="tl-line" style="background:var(--border)"></div></div>
+            <div class="tl-content card blue-l" style="padding:10px 13px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span style="color:var(--text);font-weight:700;font-size:12px">Phase 2 — Banking Integration</span><span class="badge blue">Q3 2025</span></div><div class="muted" style="font-size:10px;margin-top:3px">Live CBS APIs · Real GST portal · Finbox / CKYC integration</div></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:#F59E0B22;border:2px solid var(--warn);color:var(--warn)">3</div><div class="tl-line" style="background:var(--border)"></div></div>
+            <div class="tl-content card warn-l" style="padding:10px 13px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span style="color:var(--text);font-weight:700;font-size:12px">Phase 3 — Pilot Deployment</span><span class="badge warn">Q1 2026</span></div><div class="muted" style="font-size:10px;margin-top:3px">NBFC / regional bank pilot · 50 live credit cases</div></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot" style="background:#6B7A9922;border:2px solid var(--muted);color:var(--muted)">4</div></div>
+            <div class="tl-content card muted-l" style="padding:10px 13px"><div style="display:flex;justify-content:space-between"><span style="color:var(--text);font-weight:700;font-size:12px">Phase 4 — Scale & Compliance</span><span class="badge" style="background:#6B7A9918;border-color:#6B7A9955;color:var(--muted)">2026</span></div><div class="muted" style="font-size:10px;margin-top:3px">RBI sandbox · SOC-2 audit · Multi-bank rollout</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bot-bar"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ SLIDE 11 — THANK YOU ═══════════════ -->
+<div class="slide" id="s11">
+  <div class="top-bar"></div>
+  <div class="title-glow"></div>
+  <div class="slide-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding-top:28px">
+    <div class="badge gold" style="font-size:12px;padding:7px 20px">🏆 TOP 10 of 500 Teams · National Hackathon 2025</div>
+    <div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:72px;font-weight:900;line-height:1">
+        <span style="color:var(--text)">Intelli</span><span style="color:var(--accent)">Credit</span>
+      </div>
+      <div style="font-size:16px;color:var(--muted);margin-top:6px;font-style:italic">Bridging India's Credit Intelligence Gap — with AI</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <div class="card blue-l" style="padding:12px 20px;text-align:center"><span style="font-size:20px">📥</span><div style="color:var(--text);font-size:11px;font-weight:700;margin-top:5px">Data Ingestor</div></div>
+      <div class="card accent-l" style="padding:12px 20px;text-align:center"><span style="font-size:20px">🔍</span><div style="color:var(--text);font-size:11px;font-weight:700;margin-top:5px">Research Agent</div></div>
+      <div class="card warn-l" style="padding:12px 20px;text-align:center"><span style="font-size:20px">📋</span><div style="color:var(--text);font-size:11px;font-weight:700;margin-top:5px">CAM Engine</div></div>
+    </div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--text)">Thank You &nbsp;·&nbsp; Questions Welcome 🙏</div>
+    <div class="muted" style="font-size:11px">Built with React · LangChain · Databricks · Claude API · XGBoost + SHAP</div>
+  </div>
+  <div class="bot-bar" style="justify-content:center"><span>IntelliCredit — AI Credit Appraisal Engine  ·  National Hackathon 2025</span></div>
+</div>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<div id="nav">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Prev</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <div class="dots" id="dots"></div>
+    <span id="slide-indicator">01 / 11</span>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+</div>
+
+<script>
+  const total = 11;
+  let cur = 1;
+
+  const dotsEl = document.getElementById('dots');
+  for(let i=1;i<=total;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===1?' active':'');
+    d.onclick=()=>goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n){
+    document.getElementById('s'+cur).classList.remove('active');
+    dotsEl.children[cur-1].classList.remove('active');
+    cur=n;
+    document.getElementById('s'+cur).classList.add('active');
+    dotsEl.children[cur-1].classList.add('active');
+    document.getElementById('slide-indicator').textContent=String(cur).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+    document.getElementById('prevBtn').disabled=cur===1;
+    document.getElementById('nextBtn').disabled=cur===total;
+  }
+
+  function navigate(d){
+    const n=cur+d;
+    if(n>=1&&n<=total) goTo(n);
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') navigate(-1);
+  });
+</script>
+</body>
+</html>
