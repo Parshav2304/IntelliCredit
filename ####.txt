@@ -1,7 +1,0 @@
-#Backend:
-node index.js
-
-#frontend:
-npm run dev
-
-http://localhost:5173
