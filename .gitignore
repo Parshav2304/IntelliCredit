@@ -4,3 +4,11 @@ dist/
 build/
 *.log
 .DS_Store
+*.mp4
+*.pdf
+*.pptx
+generate-ppt.js
+intelli-credit-ppt.html
+intelli-credit-prototype.jsx
+####.txt
+~$*
