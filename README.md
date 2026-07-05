@@ -8,6 +8,17 @@ This project is a modern, AI-powered credit analysis tool designed to assess cre
 
 IntelliCredit provides instant, local heuristic analysis through its "Neuro-Shield" engine, offering a unique approach to credit scoring and risk assessment. The application features a clean, responsive UI built with React and a robust Node.js backend.
 
+### 📐 System Flow
+```mermaid
+graph TD
+    User["User (Loan Applicant)"] -->|Inputs financial telemetry| ReactUI["React Frontend (Framer Motion UI)"]
+    ReactUI -->|Submits JSON payload| ExpressAPI["Express.js REST API"]
+    ExpressAPI -->|Evaluates risk rules| NeuroShield["Neuro-Shield Heuristics Engine"]
+    NeuroShield -->|Returns credit score & tier| ExpressAPI
+    ExpressAPI -->|Responds with risk report| ReactUI
+    ReactUI -->|Renders interactive analytics| User
+```
+
 ## 💻 Technology Stack
 
 *   **Frontend**: React 19 (Vite), Framer Motion, Lucide React
